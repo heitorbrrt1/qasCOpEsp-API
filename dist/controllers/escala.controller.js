@@ -1,5 +1,4 @@
 "use strict";
-// backend/src/controllers/escala.controller.ts
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);
@@ -48,45 +47,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getAgentes = exports.getHistorico = exports.confirmarEscala = exports.definirAtividades = void 0;
 const escala_model_1 = __importDefault(require("../models/escala.model"));
-// Importar outros modelos conforme necessário...
-// Função auxiliar para gerar a escala (exemplo simplificado)
-const gerarEscala = (atividadesPorDia) => __awaiter(void 0, void 0, void 0, function* () {
-    const diasDaSemana = ['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'];
-    const escala = diasDaSemana.map(dia => {
-        const atividades = atividadesPorDia[dia] || {};
-        const atividadesResult = {};
-        for (const atividade in atividades) {
-            const quantidade = atividades[atividade];
-            if (quantidade === 1) {
-                atividadesResult[atividade] = {
-                    socorrista: "indisponível",
-                    sargento: "indisponível",
-                    medico: "indisponível"
-                };
-            }
-            else if (quantidade > 1) {
-                atividadesResult[atividade] = [];
-                for (let i = 0; i < quantidade; i++) {
-                    atividadesResult[atividade].push({
-                        socorrista: "indisponível",
-                        sargento: "indisponível",
-                        medico: "indisponível"
-                    });
-                }
-            }
-        }
-        return {
-            diaDaSemana: dia,
-            data: new Date(), // Em produção, use datas reais conforme a semana
-            atividades: atividadesResult
-        };
-    });
-    return escala;
-});
+const escala_service_1 = require("../services/escala.service");
 const definirAtividades = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { atividadesPorDia } = req.body;
-        const dias = yield gerarEscala(atividadesPorDia);
+        const { atividadesPorDia, startDate, config } = req.body;
+        // startDate: data inicial da escala
+        // config: configurações opcionais (ex: logDebug, maxAtribuicoesPorTipo)
+        const dias = yield (0, escala_service_1.gerarEscalaCompleta)(new Date(startDate), atividadesPorDia, config);
         res.json({ dias });
     }
     catch (error) {

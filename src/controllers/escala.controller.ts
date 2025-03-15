@@ -1,43 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
 import Escala from '../models/escala.model';
+import { gerarEscalaCompleta } from '../services/escala.service';
 
-const gerarEscala = async (atividadesPorDia: any) => {
-  const diasDaSemana = ['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'];
-  const escala = diasDaSemana.map(dia => {
-    const atividades = atividadesPorDia[dia] || {};
-    const atividadesResult: any = {};
-    for (const atividade in atividades) {
-      const quantidade = atividades[atividade];
-      if (quantidade === 1) {
-        atividadesResult[atividade] = {
-          socorrista: "indisponível",
-          sargento: "indisponível",
-          medico: "indisponível"
-        };
-      } else if (quantidade > 1) {
-        atividadesResult[atividade] = [];
-        for (let i = 0; i < quantidade; i++) {
-          atividadesResult[atividade].push({
-            socorrista: "indisponível",
-            sargento: "indisponível",
-            medico: "indisponível"
-          });
-        }
-      }
-    }
-    return {
-      diaDaSemana: dia,
-      data: new Date(), // Em produção, use datas reais conforme a semana
-      atividades: atividadesResult
-    };
-  });
-  return escala;
-};
 
 export const definirAtividades = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { atividadesPorDia } = req.body;
-    const dias = await gerarEscala(atividadesPorDia);
+    const { atividadesPorDia, startDate, config } = req.body;
+    // startDate: data inicial da escala
+    // config: configurações opcionais (ex: logDebug, maxAtribuicoesPorTipo)
+    const dias = await gerarEscalaCompleta(new Date(startDate), atividadesPorDia, config);
     res.json({ dias });
   } catch (error) {
     next(error);

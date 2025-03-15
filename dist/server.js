@@ -41,11 +41,8 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const routes_1 = __importDefault(require("./routes"));
 const app = express.default();
 const PORT = process.env.PORT || 5000;
-// Middleware para JSON
 app.use(express.json());
-// Rotas da API
 app.use('/api', routes_1.default);
-// Conexão com o MongoDB (ajuste a string de conexão conforme necessário)
 const mongoURI = "mongodb://localhost:27017/escalaDB";
 mongoose_1.default
     .connect(mongoURI)
