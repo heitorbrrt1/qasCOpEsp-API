@@ -12,10 +12,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.gerarEscalaCompleta = gerarEscalaCompleta;
 exports.getMedicos = getMedicos;
 exports.getSargentos = getSargentos;
 exports.getSocorristas = getSocorristas;
-exports.gerarEscalaCompleta = gerarEscalaCompleta;
 const medico_model_1 = __importDefault(require("../models/medico.model"));
 const sargento_model_1 = __importDefault(require("../models/sargento.model"));
 const socorrista_model_1 = __importDefault(require("../models/socorrista.model"));
@@ -34,7 +34,6 @@ function getFeriadosGoiania(ano) {
             new Date(ano, 10, 2), // Finados
             new Date(ano, 10, 20), // Consciência Negra
             new Date(ano, 11, 25), // Natal
-            // Adicionar outros conforme legislação municipal
         ];
     });
 }
@@ -44,76 +43,6 @@ function getFeriadosGoiania(ano) {
 function isFimDeSemana(date) {
     const day = date.getDay();
     return day === 0 || day === 6;
-}
-// Função genérica para mapear documentos do Mongoose para o tipo Agente
-function mapDocumentToAgente(doc) {
-    return {
-        id: doc._id.toString(),
-        nome: doc.nome,
-        pontos: doc.pontos,
-        licencas: doc.licencas,
-        ultimasAtividades: {
-            TFM: null,
-            NORMAL: null,
-            OPERACIONAL: null,
-            NOTURNA: null,
-            FDSFERIADO: null,
-            CAMPOVIAGEM: null
-        }
-    };
-}
-// Funções para buscar os agentes do banco de dados
-// Funções para buscar os agentes do banco de dados
-function getMedicos() {
-    return __awaiter(this, void 0, void 0, function* () {
-        const medicos = yield medico_model_1.default.find().lean();
-        return medicos.map(doc => ({
-            id: doc._id.toString(),
-            nome: doc.nome,
-            pontos: doc.pontos,
-            licencas: doc.licencas
-        }));
-    });
-}
-function getSargentos() {
-    return __awaiter(this, void 0, void 0, function* () {
-        const sargentos = yield sargento_model_1.default.find().lean();
-        return sargentos.map(doc => ({
-            id: doc._id.toString(),
-            nome: doc.nome,
-            pontos: doc.pontos,
-            licencas: doc.licencas
-        }));
-    });
-}
-function getSocorristas() {
-    return __awaiter(this, void 0, void 0, function* () {
-        const socorristas = yield socorrista_model_1.default.find().lean();
-        return socorristas.map(doc => ({
-            id: doc._id.toString(),
-            nome: doc.nome,
-            pontos: doc.pontos,
-            licencas: doc.licencas
-        }));
-    });
-}
-/**
- * Verifica se um agente está disponível para uma data específica
- */
-function isAgentAvailableForDate(agent, date, config) {
-    // Validação de licenças
-    agent.licencas.forEach(licenca => {
-        if (licenca.dataInicio > licenca.dataFim) {
-            throw new Error(`Licença inválida para o agente ${agent.nome}: Data início após data fim`);
-        }
-    });
-    if (agent.bloqueadoAteData && date <= agent.bloqueadoAteData) {
-        if (config.logDebug) {
-            console.log(`Agente ${agent.nome} bloqueado até ${agent.bloqueadoAteData}`);
-        }
-        return false;
-    }
-    return !agent.licencas.some(licenca => date >= licenca.dataInicio && date <= licenca.dataFim);
 }
 /**
  * Gera a escala completa para a semana
@@ -141,15 +70,22 @@ function gerarEscalaCompleta(startDate_1, atividadesPorDia_1) {
             // Ordem dos dias da semana
             const diasDaSemana = ['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'];
             const escala = [];
-            // Função otimizada para seleção de agentes
+            // Função para criar a fila de prioridade dos agentes para uma atividade,
+            // utilizando os critérios: menor quantidade de pontos e, em caso de empate,
+            // data da última atividade (mais antiga tem prioridade).
             const createPriorityQueue = (agentes, tipo) => {
                 return agentes
                     .filter(a => { var _a, _b; return a.disponivel && ((_b = (_a = a.scheduleCount) === null || _a === void 0 ? void 0 : _a[tipo]) !== null && _b !== void 0 ? _b : 0) < config.maxAtribuicoesPorTipo; })
                     .sort((a, b) => {
-                    var _a, _b, _c, _d;
-                    const dataA = ((_b = (_a = a.ultimasAtividades) === null || _a === void 0 ? void 0 : _a[tipo]) === null || _b === void 0 ? void 0 : _b.getTime()) || 0;
-                    const dataB = ((_d = (_c = b.ultimasAtividades) === null || _c === void 0 ? void 0 : _c[tipo]) === null || _d === void 0 ? void 0 : _d.getTime()) || 0;
-                    return dataA - dataB;
+                    var _a, _b;
+                    if (a.pontos[tipo] !== b.pontos[tipo]) {
+                        return a.pontos[tipo] - b.pontos[tipo]; // menor pontuação primeiro
+                    }
+                    else {
+                        const dataA = ((_a = a.ultimasAtividades) === null || _a === void 0 ? void 0 : _a[tipo]) ? a.ultimasAtividades[tipo].getTime() : 0;
+                        const dataB = ((_b = b.ultimasAtividades) === null || _b === void 0 ? void 0 : _b[tipo]) ? b.ultimasAtividades[tipo].getTime() : 0;
+                        return dataA - dataB;
+                    }
                 });
             };
             // Processa cada dia
@@ -164,8 +100,8 @@ function gerarEscalaCompleta(startDate_1, atividadesPorDia_1) {
                 const diaEscala = {
                     diaDaSemana: diaKey,
                     data: dataDia,
-                    isFeriado: ehFeriado, // Corrigido: usa a variável ehFeriado
-                    isFimDeSemana: ehFimDeSemana, // Corrigido: usa a variável ehFimDeSemana
+                    isFeriado: ehFeriado,
+                    isFimDeSemana: ehFimDeSemana,
                     atividades: {
                         TFM: [],
                         NORMAL: [],
@@ -222,5 +158,79 @@ function gerarEscalaCompleta(startDate_1, atividadesPorDia_1) {
         catch (error) {
             throw new Error(`Falha na geração da escala: ${error.message}`);
         }
+    });
+}
+// Função para verificar se um agente está disponível para uma data específica
+function isAgentAvailableForDate(agent, date, config) {
+    // Validação de licenças
+    agent.licencas.forEach(licenca => {
+        if (licenca.dataInicio > licenca.dataFim) {
+            throw new Error(`Licença inválida para o agente ${agent.nome}: Data início após data fim`);
+        }
+    });
+    if (agent.bloqueadoAteData && date <= agent.bloqueadoAteData) {
+        if (config.logDebug) {
+            console.log(`Agente ${agent.nome} bloqueado até ${agent.bloqueadoAteData}`);
+        }
+        return false;
+    }
+    return !agent.licencas.some(licenca => date >= licenca.dataInicio && date <= licenca.dataFim);
+}
+// Funções para buscar os agentes do banco de dados
+function getMedicos() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const medicos = yield medico_model_1.default.find().lean();
+        return medicos.map(doc => ({
+            id: doc._id.toString(),
+            nome: doc.nome,
+            pontos: doc.pontos,
+            licencas: doc.licencas,
+            ultimasAtividades: {
+                TFM: null,
+                NORMAL: null,
+                OPERACIONAL: null,
+                NOTURNA: null,
+                FDSFERIADO: null,
+                CAMPOVIAGEM: null
+            }
+        }));
+    });
+}
+function getSargentos() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const sargentos = yield sargento_model_1.default.find().lean();
+        return sargentos.map(doc => ({
+            id: doc._id.toString(),
+            nome: doc.nome,
+            pontos: doc.pontos,
+            licencas: doc.licencas,
+            ultimasAtividades: {
+                TFM: null,
+                NORMAL: null,
+                OPERACIONAL: null,
+                NOTURNA: null,
+                FDSFERIADO: null,
+                CAMPOVIAGEM: null
+            }
+        }));
+    });
+}
+function getSocorristas() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const socorristas = yield socorrista_model_1.default.find().lean();
+        return socorristas.map(doc => ({
+            id: doc._id.toString(),
+            nome: doc.nome,
+            pontos: doc.pontos,
+            licencas: doc.licencas,
+            ultimasAtividades: {
+                TFM: null,
+                NORMAL: null,
+                OPERACIONAL: null,
+                NOTURNA: null,
+                FDSFERIADO: null,
+                CAMPOVIAGEM: null
+            }
+        }));
     });
 }

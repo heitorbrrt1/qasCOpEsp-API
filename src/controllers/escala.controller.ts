@@ -2,6 +2,10 @@ import { Request, Response, NextFunction } from 'express';
 import Escala from '../models/escala.model';
 import { gerarEscalaCompleta } from '../services/escala.service';
 
+// Importação dos modelos para atualização dos pontos
+import Medico from '../models/medico.model';
+import Sargento from '../models/sargento.model';
+import Socorrista from '../models/socorrista.model';
 
 export const definirAtividades = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -19,9 +23,41 @@ export const confirmarEscala = async (req: Request, res: Response, next: NextFun
   try {
     const { ano, mes, semana, dias } = req.body;
     const novaEscala = new Escala({ ano, mes, semana, dias });
+
     await novaEscala.save();
 
-    // Atualize os pontos dos agentes conforme necessário.
+    // Atualiza os pontos dos agentes com base na escala confirmada.
+    // Para cada atividade escalada, incrementa 1 ponto (peso = 1)
+    for (const dia of dias) {
+      for (const tipo in dia.atividades) {
+        const atividades = dia.atividades[tipo];
+        if (Array.isArray(atividades)) {
+          for (const atividade of atividades) {
+            // Atualização para Médicos
+            if (atividade.medico && atividade.medico !== "indisponível") {
+              await Medico.findOneAndUpdate(
+                { nome: atividade.medico },
+                { $inc: { [`pontos.${tipo}`]: 1 } }
+              );
+            }
+            // Atualização para Sargentos
+            if (atividade.sargento && atividade.sargento !== "indisponível") {
+              await Sargento.findOneAndUpdate(
+                { nome: atividade.sargento },
+                { $inc: { [`pontos.${tipo}`]: 1 } }
+              );
+            }
+            // Atualização para Socorristas
+            if (atividade.socorrista && atividade.socorrista !== "indisponível") {
+              await Socorrista.findOneAndUpdate(
+                { nome: atividade.socorrista },
+                { $inc: { [`pontos.${tipo}`]: 1 } }
+              );
+            }
+          }
+        }
+      }
+    }
 
     res.json({ message: "Escala confirmada e salva com sucesso" });
   } catch (error) {
@@ -45,7 +81,6 @@ export const getAgentes = async (req: Request, res: Response, next: NextFunction
     let agentes;
     switch(categoria) {
       case 'socorrista':
-        // Importe e use o modelo correto
         agentes = await (await import('../models/socorrista.model')).default.find();
         break;
       case 'sargento':

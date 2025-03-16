@@ -48,6 +48,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getAgentes = exports.getHistorico = exports.confirmarEscala = exports.definirAtividades = void 0;
 const escala_model_1 = __importDefault(require("../models/escala.model"));
 const escala_service_1 = require("../services/escala.service");
+// Importação dos modelos para atualização dos pontos
+const medico_model_1 = __importDefault(require("../models/medico.model"));
+const sargento_model_1 = __importDefault(require("../models/sargento.model"));
+const socorrista_model_1 = __importDefault(require("../models/socorrista.model"));
 const definirAtividades = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { atividadesPorDia, startDate, config } = req.body;
@@ -66,7 +70,29 @@ const confirmarEscala = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
         const { ano, mes, semana, dias } = req.body;
         const novaEscala = new escala_model_1.default({ ano, mes, semana, dias });
         yield novaEscala.save();
-        // Atualize os pontos dos agentes conforme necessário.
+        // Atualiza os pontos dos agentes com base na escala confirmada.
+        // Para cada atividade escalada, incrementa 1 ponto (peso = 1)
+        for (const dia of dias) {
+            for (const tipo in dia.atividades) {
+                const atividades = dia.atividades[tipo];
+                if (Array.isArray(atividades)) {
+                    for (const atividade of atividades) {
+                        // Atualização para Médicos
+                        if (atividade.medico && atividade.medico !== "indisponível") {
+                            yield medico_model_1.default.findOneAndUpdate({ nome: atividade.medico }, { $inc: { [`pontos.${tipo}`]: 1 } });
+                        }
+                        // Atualização para Sargentos
+                        if (atividade.sargento && atividade.sargento !== "indisponível") {
+                            yield sargento_model_1.default.findOneAndUpdate({ nome: atividade.sargento }, { $inc: { [`pontos.${tipo}`]: 1 } });
+                        }
+                        // Atualização para Socorristas
+                        if (atividade.socorrista && atividade.socorrista !== "indisponível") {
+                            yield socorrista_model_1.default.findOneAndUpdate({ nome: atividade.socorrista }, { $inc: { [`pontos.${tipo}`]: 1 } });
+                        }
+                    }
+                }
+            }
+        }
         res.json({ message: "Escala confirmada e salva com sucesso" });
     }
     catch (error) {
@@ -91,7 +117,6 @@ const getAgentes = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
         let agentes;
         switch (categoria) {
             case 'socorrista':
-                // Importe e use o modelo correto
                 agentes = yield (yield Promise.resolve().then(() => __importStar(require('../models/socorrista.model')))).default.find();
                 break;
             case 'sargento':
