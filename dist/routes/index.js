@@ -36,6 +36,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const escalaController = __importStar(require("../controllers/escala.controller"));
 const licencasController = __importStar(require("../controllers/licencas.controller"));
+const agentesController = __importStar(require("../controllers/agentes.controller"));
 const router = (0, express_1.Router)();
 router.post('/definir-atividades', (req, res, next) => {
     escalaController.definirAtividades(req, res, next);
@@ -48,6 +49,9 @@ router.get('/historico', (req, res, next) => {
 });
 router.get('/agentes', (req, res, next) => {
     escalaController.getAgentes(req, res, next);
+});
+router.post('/agentes', (req, res, next) => {
+    agentesController.addAgente(req, res, next);
 });
 router.post('/licencas', (req, res, next) => {
     licencasController.addLicenca(req, res, next);

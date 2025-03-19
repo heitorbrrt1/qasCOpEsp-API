@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import * as escalaController from '../controllers/escala.controller';
 import * as licencasController from '../controllers/licencas.controller';
-
+import * as agentesController from '../controllers/agentes.controller';
 const router: Router = Router();
 
 router.post('/definir-atividades', (req: Request, res: Response, next: NextFunction) => {
@@ -18,6 +18,10 @@ router.get('/historico', (req: Request, res: Response, next: NextFunction) => {
 
 router.get('/agentes', (req: Request, res: Response, next: NextFunction) => {
   escalaController.getAgentes(req, res, next);
+});
+
+router.post('/agentes', (req: Request, res: Response, next: NextFunction) => {
+  agentesController.addAgente(req, res, next);
 });
 
 router.post('/licencas', (req: Request, res: Response, next: NextFunction) => {

@@ -77,7 +77,7 @@ export const getHistorico = async (req: Request, res: Response, next: NextFuncti
 
 export const getAgentes = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { categoria } = req.query; // Exemplo: categoria=socorrista
+    const { categoria } = req.query;
     let agentes;
     switch(categoria) {
       case 'socorrista':

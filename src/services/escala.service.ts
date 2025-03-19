@@ -275,7 +275,7 @@ export async function getSargentos(): Promise<Agente[]> {
 
 export async function getSocorristas(): Promise<Agente[]> {
   const socorristas = await Socorrista.find().lean() as ISocorrista[];
-  return socorristas.map(doc => ({
+    return socorristas.map(doc => ({
     id: (doc._id as any).toString(),
     nome: doc.nome,
     pontos: doc.pontos,

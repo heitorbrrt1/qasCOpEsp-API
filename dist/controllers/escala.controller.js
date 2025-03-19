@@ -113,7 +113,7 @@ const getHistorico = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
 exports.getHistorico = getHistorico;
 const getAgentes = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { categoria } = req.query; // Exemplo: categoria=socorrista
+        const { categoria } = req.query;
         let agentes;
         switch (categoria) {
             case 'socorrista':
