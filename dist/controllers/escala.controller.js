@@ -78,22 +78,22 @@ const confirmarEscala = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
                 if (Array.isArray(atividades)) {
                     for (const atividade of atividades) {
                         // Atualização para Médicos
-                        if (atividade.medico && atividade.medico !== "indisponível") {
+                        if (atividade.medico && atividade.medico !== 'indisponível') {
                             yield medico_model_1.default.findOneAndUpdate({ nome: atividade.medico }, { $inc: { [`pontos.${tipo}`]: 1 } });
                         }
                         // Atualização para Sargentos
-                        if (atividade.sargento && atividade.sargento !== "indisponível") {
+                        if (atividade.sargento && atividade.sargento !== 'indisponível') {
                             yield sargento_model_1.default.findOneAndUpdate({ nome: atividade.sargento }, { $inc: { [`pontos.${tipo}`]: 1 } });
                         }
                         // Atualização para Socorristas
-                        if (atividade.socorrista && atividade.socorrista !== "indisponível") {
+                        if (atividade.socorrista && atividade.socorrista !== 'indisponível') {
                             yield socorrista_model_1.default.findOneAndUpdate({ nome: atividade.socorrista }, { $inc: { [`pontos.${tipo}`]: 1 } });
                         }
                     }
                 }
             }
         }
-        res.json({ message: "Escala confirmada e salva com sucesso" });
+        res.json({ message: 'Escala confirmada e salva com sucesso' });
     }
     catch (error) {
         next(error);
@@ -126,7 +126,7 @@ const getAgentes = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
                 agentes = yield (yield Promise.resolve().then(() => __importStar(require('../models/medico.model')))).default.find();
                 break;
             default:
-                res.status(400).json({ error: "Categoria inválida" });
+                res.status(400).json({ error: 'Categoria inválida' });
                 return;
         }
         res.json(agentes);

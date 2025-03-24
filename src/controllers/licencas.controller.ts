@@ -18,16 +18,16 @@ export const addLicenca = async (req: Request, res: Response, next: NextFunction
         agente = await Medico.findById(agenteId);
         break;
       default:
-        res.status(400).json({ error: "Categoria inválida" });
+        res.status(400).json({ error: 'Categoria inválida' });
         return;
     }
     if (!agente) {
-      res.status(404).json({ error: "Agente não encontrado" });
+      res.status(404).json({ error: 'Agente não encontrado' });
       return;
     }
     agente.licencas.push({ dataInicio, dataFim });
     await agente.save();
-    res.json({ message: "Licença adicionada com sucesso" });
+    res.json({ message: 'Licença adicionada com sucesso' });
   } catch (error) {
     next(error);
   }

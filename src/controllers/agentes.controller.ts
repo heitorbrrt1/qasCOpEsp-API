@@ -20,7 +20,7 @@ export const addAgente = async (req: Request, res: Response, next: NextFunction)
         agente = new Socorrista({ nome, pontos, licencas: [] });
         break;
       default:
-        res.status(400).json({ error: "Categoria inválida" });
+        res.status(400).json({ error: 'Categoria inválida' });
         return;
     }
 

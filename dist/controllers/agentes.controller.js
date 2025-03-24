@@ -31,7 +31,7 @@ const addAgente = (req, res, next) => __awaiter(void 0, void 0, void 0, function
                 agente = new socorrista_model_1.default({ nome, pontos, licencas: [] });
                 break;
             default:
-                res.status(400).json({ error: "Categoria inválida" });
+                res.status(400).json({ error: 'Categoria inválida' });
                 return;
         }
         yield agente.save();

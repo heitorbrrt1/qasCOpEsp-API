@@ -34,21 +34,21 @@ export const confirmarEscala = async (req: Request, res: Response, next: NextFun
         if (Array.isArray(atividades)) {
           for (const atividade of atividades) {
             // Atualização para Médicos
-            if (atividade.medico && atividade.medico !== "indisponível") {
+            if (atividade.medico && atividade.medico !== 'indisponível') {
               await Medico.findOneAndUpdate(
                 { nome: atividade.medico },
                 { $inc: { [`pontos.${tipo}`]: 1 } }
               );
             }
             // Atualização para Sargentos
-            if (atividade.sargento && atividade.sargento !== "indisponível") {
+            if (atividade.sargento && atividade.sargento !== 'indisponível') {
               await Sargento.findOneAndUpdate(
                 { nome: atividade.sargento },
                 { $inc: { [`pontos.${tipo}`]: 1 } }
               );
             }
             // Atualização para Socorristas
-            if (atividade.socorrista && atividade.socorrista !== "indisponível") {
+            if (atividade.socorrista && atividade.socorrista !== 'indisponível') {
               await Socorrista.findOneAndUpdate(
                 { nome: atividade.socorrista },
                 { $inc: { [`pontos.${tipo}`]: 1 } }
@@ -59,7 +59,7 @@ export const confirmarEscala = async (req: Request, res: Response, next: NextFun
       }
     }
 
-    res.json({ message: "Escala confirmada e salva com sucesso" });
+    res.json({ message: 'Escala confirmada e salva com sucesso' });
   } catch (error) {
     next(error);
   }
@@ -90,7 +90,7 @@ export const getAgentes = async (req: Request, res: Response, next: NextFunction
         agentes = await (await import('../models/medico.model')).default.find();
         break;
       default:
-        res.status(400).json({ error: "Categoria inválida" });
+        res.status(400).json({ error: 'Categoria inválida' });
         return;
     }
     res.json(agentes);

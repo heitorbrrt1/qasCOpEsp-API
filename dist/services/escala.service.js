@@ -130,7 +130,7 @@ function gerarEscalaCompleta(startDate_1, atividadesPorDia_1) {
                         const escolher = (categoria) => {
                             const queue = createPriorityQueue(categoria, tipo);
                             if (queue.length === 0)
-                                return "indisponível";
+                                return 'indisponível';
                             const escolhido = queue[0];
                             escolhido.scheduleCount[tipo]++;
                             escolhido.ultimasAtividades[tipo] = new Date(dataDia);

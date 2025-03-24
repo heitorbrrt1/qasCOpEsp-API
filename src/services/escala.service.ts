@@ -183,7 +183,7 @@ export async function gerarEscalaCompleta(
         for (let occ = 0; occ < quantidade; occ++) {
           const escolher = (categoria: Agente[]) => {
             const queue = createPriorityQueue(categoria, tipo);
-            if (queue.length === 0) return "indisponível";
+            if (queue.length === 0) return 'indisponível';
 
             const escolhido = queue[0];
             escolhido.scheduleCount![tipo]++;
