@@ -87,4 +87,4 @@ O **qasCOpEsp-API** é uma API desenvolvida para gerenciar a escala de atividade
 ```
 
 ## Licença
-Este projeto está licensiado sob a [MIT License](https://github.com/heitorbrrt1/qasCOpEsp-API/blob/main/LICENSE)
+Este projeto está licensiado sob a [GNU AGPLv3 License](https://github.com/heitorbrrt1/qasCOpEsp-API/blob/main/LICENSE)
